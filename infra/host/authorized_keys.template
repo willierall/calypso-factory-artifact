@@ -1,0 +1,3 @@
+# ~factory/.ssh/authorized_keys on each Calypso scheduler host.
+# One key pair per environment. Replace the source IP with the factory server's address.
+restrict,from="<factory-server-ip>",command="/opt/factory/bin/factory-gate" ssh-ed25519 <public-key> factory@<client>-<env>

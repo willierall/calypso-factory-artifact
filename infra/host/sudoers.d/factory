@@ -1,0 +1,3 @@
+# Install with: visudo -f /etc/sudoers.d/factory
+# The factory user may run the Calypso CLI as the Calypso OS user, and nothing else.
+factory ALL=(calypso) NOPASSWD: /opt/factory/bin/calypso-cli

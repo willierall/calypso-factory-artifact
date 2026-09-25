@@ -1,0 +1,22 @@
+# Confidential inputs: raw client exports and the Nasdaq Workbench release
+exports/*
+!exports/.gitkeep
+vendor/*
+!vendor/.gitkeep
+
+# Secrets and local settings
+.env
+.env.*
+*.pem
+id_*
+CLAUDE.local.md
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Build artefacts (rendered packages and run output)
+build/
+out/

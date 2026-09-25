@@ -1,0 +1,14 @@
+# Factory-owned environments for GCP. No secrets here: `key` points into the secret store.
+client: gcp
+calypso_version: "<version>"   # fill in from the GCP environment
+environments:
+  dev:
+    workbench_env: gcp_dev
+    role: dev        # changes land here first; drift expected
+    scheduler_host:
+      ssh: {host: <gcp-dev-scheduler-host>, user: factory, key: secret/factory/ssh/gcp-dev}
+  test:
+    workbench_env: gcp_test
+    role: test       # factory-only; drift raises an alert
+    scheduler_host:
+      ssh: {host: <gcp-test-scheduler-host>, user: factory, key: secret/factory/ssh/gcp-test}

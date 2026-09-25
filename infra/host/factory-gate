@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Forced command for the factory's SSH key: three commands, strict parameters.
+# Install as /opt/factory/bin/factory-gate on each Calypso scheduler host.
+set -euo pipefail
+
+CLI=/opt/factory/bin/calypso-cli
+ID='^[A-Za-z0-9._-]{1,64}$'
+DATE='^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+
+log()    { logger -t factory-gate -- "$(printf '%q ' "$@")"; }
+reject() { log REJECT "${SSH_ORIGINAL_COMMAND:-}"; exit 2; }
+
+[[ ${SSH_ORIGINAL_COMMAND:-} == *$'\n'* ]] && reject
+read -r -a args <<< "${SSH_ORIGINAL_COMMAND:-}"
+n=${#args[@]}
+
+case "${args[0]:-} ${args[1]:-}" in
+  "eod start")
+    (( n == 5 )) && [[ ${args[2]} =~ $ID && ${args[3]} =~ $DATE && ${args[4]} =~ $ID ]] || reject ;;
+  "eod status" | "eod collect")
+    (( n == 3 )) && [[ ${args[2]} =~ $ID ]] || reject ;;
+  *) reject ;;
+esac
+
+log ALLOW "${args[@]}"
+exec sudo -n -u calypso "$CLI" "${args[@]}"
