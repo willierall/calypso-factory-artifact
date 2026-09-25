@@ -18,6 +18,18 @@ Design agreed on 24 Sep 2026. The team version with comments lives in the Claude
 
 All factory-owned environments are hosted at Andile, so the factory server reaches them directly. Databases are Oracle or PostgreSQL on AWS with snapshots available.
 
+## Config Workbench as the central hub
+
+The factory deploys and runs its own Config Workbench. It is the single place every export, import and compare goes through, for every client.
+
+- One instance per Calypso version in use, because the Workbench only connects environments on the same version. This matches one baseline per Calypso version.
+- It connects only to Andile's internal environments (DEV and TEST). It does not connect to bank UAT or production at this stage; those still receive a release pack.
+- Environments are registered as code: a workflow step reads each `clients/<client>/environments.yaml` and creates or updates the Workbench environment through `POST`/`PUT /environments`, with the password from AWS Secrets Manager. Manual registration in the UI is drift.
+- It keeps its own database (packages, reports, audit): H2 for the hackathon, PostgreSQL on RDS after that.
+- People and agents never call it directly. Requests go through the Factory API, and workflows call it through the Workbench client under the per-environment lock.
+- Trades still go through Data Uploader in each target environment.
+- Deployment lives in `infra/workbench/`. Deploying it is part of the hackathon target.
+
 ## Components
 
 | Component | Job | Technology |
@@ -28,7 +40,7 @@ All factory-owned environments are hosted at Andile, so the factory server reach
 | Agent service | Runs each agent with its own limited tool set | Claude Agent SDK, tools served over MCP |
 | `cfgkit` | Deterministic core: explode, canonicalise, tokenise, render, pack, diff, with a CLI | Python, lxml |
 | Workbench client | Typed wrapper around the Workbench REST API | Python |
-| Config Workbench | Export, import, compare; one instance per Calypso version in use | Workbench 5.8.2 on the factory server |
+| Config Workbench | Central export, import, compare for all internal environments; one instance per Calypso version in use, deployed by the factory | Workbench 5.8.2 on the factory server (`infra/workbench/`) |
 | `host-cli` | Runs on each Calypso scheduler host: EOD start, status, collect, plus read-only probe checks | Java, reached over SSH through a forced command |
 | Stores | Source of truth, run history, artefacts, secrets | GitHub, Postgres, S3, AWS Secrets Manager |
 
@@ -154,7 +166,8 @@ calypso-factory/
 │   ├── cfgkit/  workbench/  workflows/  agents/  mcp/  api/  console/
 ├── host-cli/                           # Java CLI for scheduler hosts
 ├── infra/
-│   └── host/                           # factory-gate, sudoers rule, authorized_keys template
+│   ├── host/                           # factory-gate, sudoers rule, authorized_keys template
+│   └── workbench/                      # Config Workbench deployment and environment registration
 ├── schemas/
 └── .github/workflows/                  # CI: lint, round-trip test, render all clients
 ```
@@ -163,7 +176,7 @@ calypso-factory/
 
 | Stage | Scope | Agents |
 | --- | --- | --- |
-| Hackathon | `cfgkit` and CLI on one server; harvest GCB; build two clients into an empty environment | Baseline curator, as a stretch goal |
+| Hackathon | Deploy Config Workbench and register internal environments; `cfgkit` and CLI on one server; harvest GCB; build two clients into an empty environment | Baseline curator, as a stretch goal |
 | Next | Temporal workflows, Factory API, minimal console, chat change flow on DEV | Change agent, build doctor |
 | Then | Promotion to TEST, EOD test runs, drift checks, SSO and roles | Test agent, drift analyst |
 | Later | Scope-driven onboarding, test packs per product, a baseline per Calypso version | Scope analyst |

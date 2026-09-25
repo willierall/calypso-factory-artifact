@@ -6,6 +6,7 @@ Status on 24 Sep 2026: design agreed, nothing built yet. The first real input, a
 
 ## Hackathon target
 
+- The factory deploys and runs its own Config Workbench, registered to the internal environments from `clients/<client>/environments.yaml`.
 - One command takes an empty Calypso database to a configured environment.
 - Changing only a client values file and running again produces a second client from the same baseline.
 - Narrow domain only: currencies, currency pairs, holiday calendars, one legal entity and processing org, one book, one workflow (its statuses and actions are domain values), plus test trades.
@@ -14,6 +15,7 @@ Status on 24 Sep 2026: design agreed, nothing built yet. The first real input, a
 
 - One tokenised baseline, many clients. Client identity lives only in `clients/<client>/`. Never create per-client copies of the baseline.
 - Config Workbench 5.8.2 exports, imports and compares through its REST API under `/configworkbench-service/api/v1/`. The API is licensed separately; confirm the licence before relying on it. Details in `docs/workbench-reference.md`.
+- The factory deploys Config Workbench itself, one instance per Calypso version, as the single place every export, import and compare goes through. It connects only to Andile's internal environments (DEV and TEST); it never connects to bank environments at this stage. People and agents reach it only through the Factory API and workflows.
 - References between objects are business-key identifiers, not database IDs. In the narrow domain only trades are keyed by internal ID.
 - Export with dependencies only follows the same group or Core. So there is one Workbench package per group, imported in this order: Core, Reference Data, Static Data, Configuration, Transactional. This order is a hypothesis until confirmed on real exports. The Workbench orders objects within a package.
 - Agents propose, workflows execute, people approve. Agents never import into an environment and never see credentials.
@@ -34,6 +36,7 @@ tests/                          shared scenarios, eod-chain.yaml, frozen market 
 factory/                        cfgkit/, workbench/, workflows/, agents/, mcp/, api/, console/
 host-cli/                       Java CLI for scheduler hosts: eod start|status|collect, probe
 infra/host/                     factory-gate forced command, sudoers rule, authorized_keys template
+infra/workbench/                Config Workbench deployment: container, database, environment registration
 schemas/                        JSON Schema for values, manifest, tests
 exports/  vendor/               git-ignored: raw exports and the Workbench release
 ```
@@ -59,11 +62,14 @@ exports/  vendor/               git-ignored: raw exports and the Workbench relea
 2. `cfgkit explode` and `cfgkit canonicalise`, with tests on the real files.
 3. `cfgkit tokenise`, extraction of `clients/gcb/values.yaml`, and the round-trip test.
 4. `cfgkit render` and `cfgkit pack` (rebuild each package zip, including `selection.xml`); try one import on a scratch DEV.
-5. Workbench API client and a one-command build for the narrow domain.
+5. Deploy Config Workbench (`infra/workbench/`) and register the GCB DEV and TEST environments from `environments.yaml`.
+6. Workbench API client and a one-command build for the narrow domain.
 
 ## Open questions
 
 - Installed Workbench version, API licence, and how API calls authenticate.
+- Does running our own Workbench instances need a Nasdaq licence per deployment?
+- The Workbench stores environment passwords in its own database. Is that acceptable, or should workflows register environments only for the length of a run?
 - Does the importer accept a rebuilt `selection.xml`?
 - Is import insert-or-update? Test by importing the same zip twice on a scratch DEV.
 - Calypso version of the GCB environment, which names the baseline folder.
