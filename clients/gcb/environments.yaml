@@ -1,0 +1,14 @@
+# Factory-owned environments for GCB. No secrets here: `key` points into the secret store.
+client: gcb
+calypso_version: "<version>"   # fill in from the GCB environment
+environments:
+  dev:
+    workbench_env: gcb_dev
+    role: dev        # changes land here first; drift expected
+    scheduler_host:
+      ssh: {host: <gcb-dev-scheduler-host>, user: factory, key: secret/factory/ssh/gcb-dev}
+  test:
+    workbench_env: gcb_test
+    role: test       # factory-only; drift raises an alert
+    scheduler_host:
+      ssh: {host: <gcb-test-scheduler-host>, user: factory, key: secret/factory/ssh/gcb-test}

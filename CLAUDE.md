@@ -2,7 +2,7 @@
 
 Automates the Calypso configuration build for Andile's client environments: one tokenised baseline in Git, a small values file per client, rendered and imported through Config Workbench, then verified with test trades and end-of-day runs.
 
-Status on 24 Sep 2026: design agreed, nothing built yet. The first real input, a Config Workbench export of the GCP reference environment, lands in `exports/gcp/` on 25 Sep 2026.
+Status on 24 Sep 2026: design agreed, nothing built yet. The first real input, a Config Workbench export of the GCB reference environment, lands in `exports/gcb/` on 25 Sep 2026.
 
 ## Hackathon target
 
@@ -45,7 +45,7 @@ exports/  vendor/               git-ignored: raw exports and the Workbench relea
 - Tokens use Calypso's `@TOKEN@` style. Substitute only at the XPath targets listed in `tokens.yaml`; never find-and-replace free text.
 - Tokenise at harvest time, render at build time. Rendered output is a build artefact and is never committed.
 - Every config change comes with at least one test.
-- The round-trip test must always pass: rendering the baseline with GCP's values reproduces GCP's canonical export exactly.
+- The round-trip test must always pass: rendering the baseline with GCB's values reproduces GCB's canonical export exactly.
 
 ## Safety rules
 
@@ -55,9 +55,9 @@ exports/  vendor/               git-ignored: raw exports and the Workbench relea
 
 ## Next tasks, in order
 
-1. Inspect the GCP export: zip layout, `selection.xml`, how references appear, and which fields differ between two exports of the same package.
+1. Inspect the GCB export: zip layout, `selection.xml`, how references appear, and which fields differ between two exports of the same package.
 2. `cfgkit explode` and `cfgkit canonicalise`, with tests on the real files.
-3. `cfgkit tokenise`, extraction of `clients/gcp/values.yaml`, and the round-trip test.
+3. `cfgkit tokenise`, extraction of `clients/gcb/values.yaml`, and the round-trip test.
 4. `cfgkit render` and `cfgkit pack` (rebuild each package zip, including `selection.xml`); try one import on a scratch DEV.
 5. Workbench API client and a one-command build for the narrow domain.
 
@@ -66,4 +66,4 @@ exports/  vendor/               git-ignored: raw exports and the Workbench relea
 - Installed Workbench version, API licence, and how API calls authenticate.
 - Does the importer accept a rebuilt `selection.xml`?
 - Is import insert-or-update? Test by importing the same zip twice on a scratch DEV.
-- Calypso version of the GCP environment, which names the baseline folder.
+- Calypso version of the GCB environment, which names the baseline folder.

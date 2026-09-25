@@ -49,7 +49,7 @@ Model calls go through the Anthropic API, or through Amazon Bedrock if a client 
 
 | Workflow | Trigger | Steps | Human gate |
 | --- | --- | --- | --- |
-| Harvest | Run against the GCP reference environment | Export each group's package, explode, canonicalise, tokenise, open a pull request | Pull request review |
+| Harvest | Run against the GCB reference environment | Export each group's package, explode, canonicalise, tokenise, open a pull request | Pull request review |
 | Onboard client | Scope document uploaded | Scope analyst drafts values, schema check, pull request | Consultant approves |
 | Change | Chat request | Static checks, snapshot DEV, import changed packages, compare, tests, report | Approval to merge |
 | Build | Console, CLI or merge | Render, pack per group, upload and import in group order, poll, compare, verify, tests | Approval for TEST |
@@ -60,13 +60,13 @@ Model calls go through the Anthropic API, or through Amazon Bedrock if a client 
 
 ## Chat change flow
 
-1. The change agent decides where the change belongs (table below) and asks when the scope is unclear, for example "all clients, or only GCP?"
+1. The change agent decides where the change belongs (table below) and asks when the scope is unclear, for example "all clients, or only GCB?"
 2. It edits files on a branch named `change/<client>/<short-name>`, adds at least one test, and opens a pull request with a plain-language summary.
 3. Static checks run in seconds: schema, references resolve, no unreplaced tokens, import order, every affected client renders.
 4. The pipeline locks the client's DEV, snapshots it, imports only the changed packages in group order, then upload-and-compares to confirm DEV matches the render.
 5. The new test and the client's regression pack run; results go to the chat and the pull request.
 6. A person approves and merges.
-7. The tagged release is imported into TEST, the full validation pack runs, and the release pack for the bank is built. Tags look like `gcp/test-2026.10.1`.
+7. The tagged release is imported into TEST, the full validation pack runs, and the release pack for the bank is built. Tags look like `gcb/test-2026.10.1`.
 
 | The change is | It lands in | Reviewed by |
 | --- | --- | --- |
@@ -141,7 +141,7 @@ calypso-factory/
 │       ├── 04-configuration/TaskWorkflowConfig/…
 │       └── 05-transactional/Trade/…    # test trade templates
 ├── clients/
-│   └── gcp/                            # reference client
+│   └── gcb/                            # reference client
 │       ├── values.yaml
 │       ├── overrides/
 │       ├── environments.yaml           # DEV and TEST only; no secrets
@@ -163,11 +163,11 @@ calypso-factory/
 
 | Stage | Scope | Agents |
 | --- | --- | --- |
-| Hackathon | `cfgkit` and CLI on one server; harvest GCP; build two clients into an empty environment | Baseline curator, as a stretch goal |
+| Hackathon | `cfgkit` and CLI on one server; harvest GCB; build two clients into an empty environment | Baseline curator, as a stretch goal |
 | Next | Temporal workflows, Factory API, minimal console, chat change flow on DEV | Change agent, build doctor |
 | Then | Promotion to TEST, EOD test runs, drift checks, SSO and roles | Test agent, drift analyst |
 | Later | Scope-driven onboarding, test packs per product, a baseline per Calypso version | Scope analyst |
 
 ## Client data and models
 
-The GCP export is a client's real configuration, and any agent call sends parts of it to a model. Check the client agreement before agents see it, and route model calls through Amazon Bedrock if the agreement requires it. The deterministic build path never needs a model.
+The GCB export is a client's real configuration, and any agent call sends parts of it to a model. Check the client agreement before agents see it, and route model calls through Amazon Bedrock if the agreement requires it. The deterministic build path never needs a model.
